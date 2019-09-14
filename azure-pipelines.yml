@@ -22,9 +22,15 @@ steps:
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
     inputs:
       gitHubConnection: aplqo
-      repositoryName: aplqo/$(repository_name)
-      action: create
+      repositoryName: '$(Build.Repository.Name)' 
+      action: 'create'
+      target: '$(Build.SourceVersion)'
+      tagSource: 'auto'
+      releaseNotesSource: 'file'
+      releaseNotesFile:  ReleaseNote.md
       assets: _pdf/*.pdf
+      addChangeLog: true
+      compareWith: 'lastFullRelease'
   - task: PublishPipelineArtifact@1
     inputs:
       targetPath: _pdf/*.pdf
