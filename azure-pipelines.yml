@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - latest
+  tags:
+    include:
+      - v*
+
+pool:
+  vmImage: windows-latest
+
+steps:
+  - script: |
+      \@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+      choco install docfx -y
+      choco install wkhtmltopdf -y
+    displayName: install
+  - script: |
+      docfx pdf
+    displayName: build
+  - task: GitHubRelease@0
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
+    inputs:
+      gitHubConnection: aplqo
+      repositoryName: aplqo/$(repository_name)
+      action: create
+      assets: _pdf/*.pdf
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: _pdf/*.pdf
